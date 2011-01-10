@@ -24,5 +24,5 @@ new = re.sub( r"(</html>|</body>)", "", html )
 html = html.replace( ' type="text/css"', '' ) # Makes no difference to browser
 
 # Write the resulting string to a new file
-with open( "tron.html", "w" ) as output:
+with open( "index.html", "w" ) as output:
 	output.write( html )
