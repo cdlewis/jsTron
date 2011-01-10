@@ -311,9 +311,7 @@ function Controller()
 			// Stop the loop
 			clearInterval( this.loop );
 			
-			// Let them know who won
-			
-			// Give them the option to play again
+			// Let them know who won and give them the option to play again
 			box.set_message( info[ 1 ], function()
 			{
 				window.tron.game.reset(); // Reset player locations
