@@ -1,0 +1,4 @@
+To access the uncompiled version of Tron just use tron.html. Tron can also
+be compiled which involves using Google closure to compress the Javascript
+and a few other tricks to slightly reduce the file size. Tron can be
+compiled by running: python compile.py
