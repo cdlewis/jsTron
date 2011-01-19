@@ -21,15 +21,19 @@
 	@param {number} height
 */
 function Game( width, height )
-{	
+{
+	// alias some functions and variables to make (compiled) code shorter
+	/** @const */ var t = this;
+	/** @const */ var floor = Math.floor;
+	
 	// Keeping track of specific state changes (allows for more efficient drawing)
-	this.changes = Array();
+	t.changes = Array();
 	
 	// Calculate displacement
-	var displacement = Math.floor( ( 0.02 * height ) / 2 );
+	var displacement = floor( ( 0.02 * height ) / 2 );
 	
 	// Place a player on the grid (accounting for displacement)
-	this.imprint = function( player )
+	t.imprint = function( player )
 	{
 		if( player.xdir == 1 || player.xdir == -1 ) // Travelling horizontally
 		{
@@ -40,12 +44,12 @@ function Game( width, height )
 					return false;
 				
 				// Make sure it's unoccupied
-				if( this.grid[ player.x ][ i ] != 0 )
+				if( t.grid[ player.x ][ i ] != 0 )
 					return false;
 				
 				// Place player
-				this.grid[ player.x ][ i ] = player.signature;
-				this.changes.push( { x : player.x, y : i, signature : player.signature } );
+				t.grid[ player.x ][ i ] = player.signature;
+				t.changes.push( { x : player.x, y : i, signature : player.signature } );
 			}
 
 			return true;
@@ -59,12 +63,12 @@ function Game( width, height )
 					return false;
 				
 				// Make sure it's unoccupied
-				if( this.grid[ i ][ player.y ] != 0 )
+				if( t.grid[ i ][ player.y ] != 0 )
 					return false;
 				
 				// Place player
-				this.grid[ i ][ player.y ] = player.signature;
-				this.changes.push( { x : i, y : player.y, signature : player.signature } );
+				t.grid[ i ][ player.y ] = player.signature;
+				t.changes.push( { x : i, y : player.y, signature : player.signature } );
 			}
 
 			return true;
@@ -73,20 +77,20 @@ function Game( width, height )
 	
 	/*
 	 * Update the game state
-	 * @return {Array.<(boolean|string)>}
+	 * @return {{0: boolean, 1: string}}
 	 */
-	this.update = function()
+	t.update = function()
 	{
 		// Move player 1
-		this.player1.move();
-		var p1_result = this.imprint( this.player1 );
+		t.player1.move();
+		var p1_result = t.imprint( t.player1 );
 		
 		// Move player 2
-		this.player2.move();
-		var p2_result = this.imprint( this.player2 );
+		t.player2.move();
+		var p2_result = t.imprint( t.player2 );
 		
 		if( p1_result == true && p2_result == true ) // Neither player has made an illegal move
-			return [ true, 0 ];
+			return [ true, "" ];
 		else if( p1_result == false && p2_result == false ) // Both players have made an illegal move
 			return [ false, "Draw!" ];
 		else if( p1_result == false ) // Player 1 has made an illegal move but Player 2 hasn't
@@ -98,18 +102,18 @@ function Game( width, height )
 	/*
 	 * Revert the game back to its original state
 	 */
-	this.reset = function()
+	t.reset = function()
 	{
 		// Reset all locations on the grid to 0
-		mapMatrix( this.grid, function( element ) { return 0; } );
+		mapMatrix( t.grid, function( element ) { return 0; } );
 		
 		// Move players to starting locations and directions
-		this.player1.reset();
-		this.player2.reset();
+		t.player1.reset();
+		t.player2.reset();
 		
 		// Upate the grid to reflect new player locations
-		this.imprint( this.player1 );
-		this.imprint( this.player2 );
+		t.imprint( t.player1 );
+		t.imprint( t.player2 );
 	}
 	
 	/*
@@ -119,21 +123,21 @@ function Game( width, height )
 			1 - Occupied by player 1
 			2 - Occupied by player 2
 	 */
-	 this.grid = createMatrix( width, height, 0 );
+	 t.grid = createMatrix( width, height, 0 );
 	
 	/*
 	 	Setup player co-ordinates and direction. Players do not start at the edge of the wall
 	 	because this would lead to boring and predictable games, instead they start a small way
 	 	into the level. Because we are indexing into an array the exact positions have been rounded.
 	 */
-	this.player1 = new Player( Math.floor( .2 * width ), Math.floor( height / 2 ), 1, 0, 1, displacement );
-	this.player2 = new Player( Math.floor( .8 * width ), Math.floor( height / 2 ), -1, 0, 2, displacement )
+	t.player1 = new Player( floor( .2 * width ), floor( height / 2 ), 1, 0, 1, displacement );
+	t.player2 = new Player( floor( .8 * width ), floor( height / 2 ), -1, 0, 2, displacement )
 
 	// Place player 1 on the grid
-	this.imprint( this.player1 );
+	t.imprint( t.player1 );
 	
 	// Place player 2 on the grid
-	this.imprint( this.player2 );
+	t.imprint( t.player2 );
 }
 
 /**
@@ -148,12 +152,15 @@ function Game( width, height )
  */
 function Player( x, y, xdir, ydir, signature, displacement )
 {
+	// alias to make (compiled) code shorter
+	/** @const */ var t = this;
+	
 	// Store initialisation variables in the class
-	this.x = x;
-	this.y = y;
-	this.xdir = xdir;
-	this.ydir = ydir;
-	this.signature = signature;
+	t.x = x;
+	t.y = y;
+	t.xdir = xdir;
+	t.ydir = ydir;
+	t.signature = signature;
 	
 	var init_x = x;
 	var init_y = y;
@@ -162,19 +169,19 @@ function Player( x, y, xdir, ydir, signature, displacement )
 	var start_xdir = xdir;
 	var start_ydir = ydir;
 
-	this.reset = function()
+	t.reset = function()
 	{
-		this.x = start_x;
-		this.y = start_y;
+		t.x = start_x;
+		t.y = start_y;
 		
-		this.xdir = start_xdir;
-		this.ydir = start_ydir;
+		t.xdir = start_xdir;
+		t.ydir = start_ydir;
 	}
 
-	this.move = function()
+	t.move = function()
 	{
-		this.x += this.xdir;
-		this.y += this.ydir;
+		t.x += t.xdir;
+		t.y += t.ydir;
 	}
 
 	/**
@@ -185,7 +192,7 @@ function Player( x, y, xdir, ydir, signature, displacement )
 	 * @param {number} newXdir The new x direction. -1 = Left, 0 = Center, 1 = Right
 	 * @param {number} newYdir The new y direction. -1 = Up, 0 = Center, 1 = Down
 	 */
-	this.changeDir = function( newXdir, newYdir )
+	t.changeDir = function( newXdir, newYdir )
 	{
 		/*
 			This protects against two separate cases:
@@ -193,7 +200,7 @@ function Player( x, y, xdir, ydir, signature, displacement )
 				2. Player is trying to reverse direction which will result
 				   in instant death if allowed.
 		 */
-		if( newXdir == this.xdir || newYdir == this.ydir )
+		if( newXdir == t.xdir || newYdir == t.ydir )
 			return;
 		
 		/*
@@ -203,27 +210,27 @@ function Player( x, y, xdir, ydir, signature, displacement )
 			in the player accidently running into themselves in a non
 			obvious, counter intuitive way.
 		 */
-		if( Math.abs( init_x - this.x ) <= displacement * 2 && Math.abs( init_y - this.y ) <= displacement * 2 )
+		if( Math.abs( init_x - t.x ) <= displacement * 2 && Math.abs( init_y - t.y ) <= displacement * 2 )
 			return;
 		
 		if( newXdir != 0 ) // Moving left or right
 		{
-			this.x += newXdir * displacement;
-			this.y += -1 * this.ydir * displacement;
+			t.x += newXdir * displacement;
+			t.y += -1 * t.ydir * displacement;
 		}
 		else // Moving up or down
 		{
-			this.x += -1 * this.xdir * displacement;
-			this.y += newYdir * displacement;
+			t.x += -1 * t.xdir * displacement;
+			t.y += newYdir * displacement;
 		}
 		
 		// Finally, update the direction faced by the player
-		this.xdir = newXdir;
-		this.ydir = newYdir;
+		t.xdir = newXdir;
+		t.ydir = newYdir;
 		
 		// Update init co-ordinates to new location
-		init_x = this.x;
-		init_y = this.y;
+		init_x = t.x;
+		init_y = t.y;
 	}
 }
 
@@ -232,55 +239,63 @@ function Player( x, y, xdir, ydir, signature, displacement )
 */
 function Controller()
 {
+	// alias some functions and variables to make (compiled) code shorter
+	/** @const */ var w = window;
+	/** @const */ var screen_width = w.innerWidth;
+	/** @const */ var screen_height = w.innerHeight;
+	/** @const */ var t = this;
+	/** @const */ var doc = document;
+	/** @const */ var doc_body = doc.body
+	
 	// Create a global reference to the controller
-	window.tron = this;
-
-	// Give colours meaningful names
+	w.tron = t;
+	
+	// Only 3 colours are used, they might as well be given meaningful names
 	/** @const */ var RED   = "rgb(255,160,160)";
 	/** @const */ var GREEN = "rgb(143,200,127)";
 	/** @const */ var GRAY  = "rgb(51,51,51)";
 	
 	// Create the game
-	this.game = new Game( window.innerWidth, window.innerHeight );
+	t.game = new Game( screen_width, screen_height );
 	
 	// Setup the canvas
-	var html_canvas = document.createElement( "canvas" );
-	html_canvas.width = window.innerWidth;
-	html_canvas.height = window.innerHeight;
-	document.body.appendChild( html_canvas );
+	var html_canvas = doc.createElement( "canvas" );
+	html_canvas.width = screen_width;
+	html_canvas.height = screen_height;
+	doc_body.appendChild( html_canvas );
 	
 	// Clear any existing material off the canvas
 	var context = html_canvas.getContext( "2d" );
-	context.fillStyle = GRAY;  
-	context.fillRect( 0, 0, html_canvas.width, html_canvas.height );
+	context.fillStyle = GRAY;
+	context.fillRect( 0, 0, screen_width, screen_height );
 	
 	// Maps keycodes to specific actions (contained in anonymous functions)
-	this.keymap = Array();
-	this.keymap[ 87 ] = function() { window.tron.game.player1.changeDir(  0, -1 ); }; // W
-	this.keymap[ 65 ] = function() { window.tron.game.player1.changeDir( -1,  0 ); }; // A
-	this.keymap[ 83 ] = function() { window.tron.game.player1.changeDir(  0,  1 ); }; // S
-	this.keymap[ 68 ] = function() { window.tron.game.player1.changeDir(  1,  0 ); }; // D
-	this.keymap[ 38 ] = function() { window.tron.game.player2.changeDir(  0, -1 ); }; // Up
-	this.keymap[ 40 ] = function() { window.tron.game.player2.changeDir(  0,  1 ); }; // Down
-	this.keymap[ 37 ] = function() { window.tron.game.player2.changeDir( -1,  0 ); }; // Left
-	this.keymap[ 39 ] = function() { window.tron.game.player2.changeDir(  1,  0 ); }; // Right
+	t.keymap = Array();
+	t.keymap[ 87 ] = function() { t.game.player1.changeDir(  0, -1 ); }; // W
+	t.keymap[ 65 ] = function() { t.game.player1.changeDir( -1,  0 ); }; // A
+	t.keymap[ 83 ] = function() { t.game.player1.changeDir(  0,  1 ); }; // S
+	t.keymap[ 68 ] = function() { t.game.player1.changeDir(  1,  0 ); }; // D
+	t.keymap[ 38 ] = function() { t.game.player2.changeDir(  0, -1 ); }; // Up
+	t.keymap[ 40 ] = function() { t.game.player2.changeDir(  0,  1 ); }; // Down
+	t.keymap[ 37 ] = function() { t.game.player2.changeDir( -1,  0 ); }; // Left
+	t.keymap[ 39 ] = function() { t.game.player2.changeDir(  1,  0 ); }; // Right
 	
 	// Used for communication with the user
 	var box = new Information_Box();
-	box.set_message( "Start Game", function() { window.tron.start() } );
+	box.set_message( "Start Game", function() { w.tron.start() } );
 	
 	// Setup handlers for keyboard input
-	document.onkeydown = function( event )
+	w.onkeydown = function( event )
 	{
-		var action = window.tron.keymap[ event.keyCode ];
+		var action = w.tron.keymap[ event.keyCode ];
 		
 		if( action != undefined ) action();
 	};
 	
-	this.start = function()
+	t.start = function()
 	{
 		// Start the main loop
-		this.loop = setInterval( function() { window.tron.step(); }, 30 );
+		t.loop = setInterval( function() { w.tron.step(); }, 30 );
 	}
 	
 	/*
@@ -289,11 +304,11 @@ function Controller()
 		change and update the canvas with that information. As opposed
 		to redrawing the entire grid for every frame.
 	 */
-	this.draw = function()
+	t.draw = function()
 	{
-		while( this.game.changes.length > 0 ) // While there are still items on the stack
+		while( t.game.changes.length > 0 ) // While there are still items on the stack
 		{
-			var state = this.game.changes.pop();
+			var state = t.game.changes.pop();
 			
 			if( state.signature == 1 )
 				context.fillStyle = RED;
@@ -304,36 +319,36 @@ function Controller()
 		}
 	}
 	
-	this.wipe_canvas = function()
+	t.wipe_canvas = function()
 	{
 		context.fillStyle = GRAY;  
-		context.fillRect( 0, 0, html_canvas.width, html_canvas.height );
+		context.fillRect( 0, 0, screen_width, screen_height );
 	}
 	
 	/*
 		Main loop for the game.
 	 */
-	this.step = function()
+	t.step = function()
 	{
 		// Update the game state
-		this.game.update();
-		var info = this.game.update();
+		t.game.update();
+		var info = t.game.update();
 		
 		// Draw the new state
-		this.draw();
+		t.draw();
 		
 		// Check to see if a game ending move has occurred
 		if( info[ 0 ] == false )
 		{
 			// Stop the loop
-			clearInterval( this.loop );
+			clearInterval( t.loop );
 			
 			// Let them know who won and give them the option to play again
 			box.set_message( info[ 1 ], function()
 			{
-				window.tron.game.reset(); // Reset player locations
-				window.tron.wipe_canvas(); // Clear the canvas
-				window.tron.start()
+				t.game.reset(); // Reset player locations
+				t.wipe_canvas(); // Clear the canvas
+				t.start()
 			} );
 		}
 	}

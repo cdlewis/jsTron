@@ -21,15 +21,17 @@ for result in re.finditer( r'<script.*?src="(.*?)"></script>', html ):
 
 js = "<script>" + subprocess.check_output( closure, shell=True ) + "</script>"
 
-html = html.replace( "</body>", "</body>" + js ) # Insert js before head
+# Insert the compressed javascript just after the body
+html = html.replace( "</body>", "</body>" + js )
 
-# Remove any comments
+# Remove any html comments
 html = re.sub( "<!--.*?-->", "", html )
 
 # Also remove </body> and </html> tags (see google.com)
 html = re.sub( r"(</html>|</body>)", "", html )
 
-html = html.replace( ' type="text/css"', '' ) # Makes no difference to browser
+# Browser will infer we mean css even without specifying
+html = html.replace( ' type="text/css"', '' )
 
 # Write the resulting string to a new file
 with open( "index.html", "w" ) as output:

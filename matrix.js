@@ -20,14 +20,15 @@
 	@param {number} width
 	@param {number} height
 	@param {*} default_value
+	@return {Array.<Array.<*>>}
 */
 function createMatrix( width, height, default_value )
 {
-	var matrix = Array( width );
+	var matrix = Array();
 	
 	for( var i = 0; i < width; i++ )
 	{
-		matrix[ i ] = Array( height );
+		matrix[ i ] = Array();
 		
 		// For each location, set value to 0
 		for( var j = 0; j < height; j++ )

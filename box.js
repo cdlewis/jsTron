@@ -20,21 +20,24 @@
 */
 function Information_Box()
 {
+	// alias some functions and variables to make (compiled) code shorter
+	/** @const */ var doc = document;
+	
 	/**
 	 * DIV element used to center text on the screen 
 	 * @private
 	 */
-	var container = document.createElement( "div" );
+	var container = doc.createElement( "div" );
 	container.setAttribute( "class", "box" );
 	
 	/**
 	 * Message to be displayed
 	 * @private
 	 */
-	var message = document.createElement( "p" );
+	var message = doc.createElement( "p" );
 	
 	container.appendChild( message );
-	document.body.appendChild( container );
+	doc.body.appendChild( container );
 
 	/**
 	 * Set the box's message and attach a callback function to be called
