@@ -131,7 +131,7 @@ function Game( width, height )
 	 	into the level. Because we are indexing into an array the exact positions have been rounded.
 	 */
 	t.player1 = new Player( floor( .2 * width ), floor( height / 2 ), 1, 0, 1, displacement );
-	t.player2 = new Player( floor( .8 * width ), floor( height / 2 ), -1, 0, 2, displacement )
+	t.player2 = new Player( floor( .8 * width ), floor( height / 2 ), -1, 0, 2, displacement );
 
 	// Place player 1 on the grid
 	t.imprint( t.player1 );
@@ -149,6 +149,9 @@ function Game( width, height )
  *	@param {number} ydir (see xdir)
  *	@param {number} displacement The amount of pixals displaced by the player
  *	@param {number} signature: A unique value associated with the player
+ *	@param {number} init_x - suicide protection
+ *	@param {number} init_y - suicide protection
+ *	@param {number} speed of the player
  */
 function Player( x, y, xdir, ydir, signature, displacement )
 {
@@ -161,9 +164,12 @@ function Player( x, y, xdir, ydir, signature, displacement )
 	t.xdir = xdir;
 	t.ydir = ydir;
 	t.signature = signature;
+	t.init_x = x;
+	t.init_y = y;
+	t.speed = 1;
 	
-	var init_x = x;
-	var init_y = y;
+	t.delayed_move = -1; // If move fails due to displacement, store
+	
 	var start_x = x;
 	var start_y = y;
 	var start_xdir = xdir;
@@ -180,8 +186,11 @@ function Player( x, y, xdir, ydir, signature, displacement )
 
 	t.move = function()
 	{
-		t.x += t.xdir;
-		t.y += t.ydir;
+		if( t.delayed_move != -1 && t.changeDir( t.delayed_move[ 0 ], t.delayed_move[ 1 ] ) )
+			t.delayed_move = -1;
+		
+		t.x += ( t.speed * t.xdir );
+		t.y += ( t.speed * t.ydir );
 	}
 
 	/**
@@ -201,7 +210,7 @@ function Player( x, y, xdir, ydir, signature, displacement )
 				   in instant death if allowed.
 		 */
 		if( newXdir == t.xdir || newYdir == t.ydir )
-			return;
+			return false;
 		
 		/*
 			This restricts how often movement can occur by forcing the
@@ -210,9 +219,12 @@ function Player( x, y, xdir, ydir, signature, displacement )
 			in the player accidently running into themselves in a non
 			obvious, counter intuitive way.
 		 */
-		if( Math.abs( init_x - t.x ) <= displacement * 2 && Math.abs( init_y - t.y ) <= displacement * 2 )
-			return;
-		
+		if( Math.abs( t.init_x - t.x ) <= displacement * 2 && Math.abs( t.init_y - t.y ) <= displacement * 2 )
+		{
+			t.delayed_move = [ newXdir, newYdir ];
+			return false;
+		}
+	
 		if( newXdir != 0 ) // Moving left or right
 		{
 			t.x += newXdir * displacement;
@@ -229,8 +241,10 @@ function Player( x, y, xdir, ydir, signature, displacement )
 		t.ydir = newYdir;
 		
 		// Update init co-ordinates to new location
-		init_x = t.x;
-		init_y = t.y;
+		t.init_x = t.x;
+		t.init_y = t.y;
+		
+		return true;
 	}
 }
 
@@ -279,14 +293,17 @@ function Controller()
 	t.keymap[ 40 ] = function() { t.game.player2.changeDir(  0,  1 ); }; // Down
 	t.keymap[ 37 ] = function() { t.game.player2.changeDir( -1,  0 ); }; // Left
 	t.keymap[ 39 ] = function() { t.game.player2.changeDir(  1,  0 ); }; // Right
+	t.keymap[ 13 ] = function() { t.box.click();                      }; // ENTER
 	
 	// Used for communication with the user
-	var box = new Information_Box();
-	box.set_message( "Start Game", function() { w.tron.start() } );
+	t.box = new Information_Box();
+	t.box.set_message( "Start Game", function() { w.tron.start() } );
 	
 	// Setup handlers for keyboard input
 	w.onkeydown = function( event )
 	{
+	// 32 = space
+	// 16 = shift
 		var action = w.tron.keymap[ event.keyCode ];
 		
 		if( action != undefined ) action();
@@ -344,7 +361,7 @@ function Controller()
 			clearInterval( t.loop );
 			
 			// Let them know who won and give them the option to play again
-			box.set_message( info[ 1 ], function()
+			t.box.set_message( info[ 1 ], function()
 			{
 				t.game.reset(); // Reset player locations
 				t.wipe_canvas(); // Clear the canvas

@@ -22,6 +22,8 @@ function Information_Box()
 {
 	// alias some functions and variables to make (compiled) code shorter
 	/** @const */ var doc = document;
+	/** @const */ var t = this;
+	/** @const */ var w = window;
 	
 	/**
 	 * DIV element used to center text on the screen 
@@ -45,20 +47,26 @@ function Information_Box()
 	 * @param {string} text
 	 * @param {function(*)} lambda
 	 */
-	this.set_message = function( text, lambda )
+	t.set_message = function( text, lambda )
 	{
 		message.innerHTML = text;
-		message.style.display = "block";
+		container.style.display = "block";
+		t.lambda = lambda;
 		
 		/* Calculate the nessessary y offset required to place this object in the exact
 		 * center of the screen
 		 */
-		container.style.top = ( window.innerHeight / 2 ) - parseInt( window.getComputedStyle( container, null ).height, 10 ) / 2;
+		container.style.top = ( w.innerHeight / 2 ) - parseInt( w.getComputedStyle( container, null ).height, 10 ) / 2;
 		
-		message.onclick = function( event )
+		message.onclick = function( event ) { t.click() };
+	}
+	
+	t.click = function()
+	{
+		if( container.style.display != "none" )
 		{
-			this.style.display = "none";
-			lambda( event );
+			container.style.display = "none";
+			t.lambda();
 		}
 	}
 }
